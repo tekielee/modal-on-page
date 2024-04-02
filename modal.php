@@ -1,5 +1,5 @@
 <?php
-/** Plugin Name: Modal
+/** Plugin Name: Modal On Page
 ** Author: Cuong Le
 ** Version: 1.0
 ** Description: Create a modal custom post type where authors can add content. Authors will associate the modal to a specific URL. The Modal will show the first time an user land in the page and won’t show again after assertive action by user. If the user declines the Modal, it will redirect to blackstone.com home page.
@@ -48,7 +48,6 @@ if(!function_exists('modal_custom_post_type')) {
                 ),
                 'public'      => true,
                 'has_archive' => true,
-                'rewrite'     => array( 'slug' => 'modal' ),
                 'supports'    => array( 'title', 'editor', 'thumbnail', 'custom-fields' ),    
                 'show_in_rest' => true,
             )

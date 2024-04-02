@@ -1,21 +1,22 @@
 const app_version = navigator.appVersion;
+const link = document.URL;
 
 console.log( navigator );
 
 jQuery(document).ready(function() {
 
-    showModal(app_version);
+    showModal(app_version, link);
     
 });
 
-function displayModal() {
+function displayModal(id) {
 
     console.log('displayModal');
 
     
     jQuery.ajax({
 
-        url: '/wp-json/modal-api/v1/modal',
+        url: '/wp-json/modal-api/v1/get-meta/' + id,
 
         type: "GET",
 
@@ -41,39 +42,54 @@ function displayModal() {
 
 }
 
-function showModal(app_version) {
+function showModal(app_version, link) {
 
     console.log('/wp-json/modal-api/v1/browser-inf/?app_version=' + app_version);
 
     jQuery.ajax({
 
-        url: '/wp-json/modal-api/v1/browser-inf/?app_version=' + app_version,
+        url: '/wp-json/author_modal/v2/modal/',
 
         type: "GET",
 
         success: function(response) {
 
-          console.log(response['count']);
+            //create link hashmap link and id
+            let id = response['id'];
 
-          if (parseInt(response['count']) === 0) {
+            jQuery.ajax({
 
-            displayModal();
+                url: '/wp-json/modal-api/v1/browser-inf/?app_version=' + app_version,
 
-            ajaxSaveBroswerFingerPrint(app_version);
+                type: "GET",
 
-            console.log('save');
+                success: function(response) {
 
-          } else {
+                    console.log(response['count']);
 
-            ajaxSaveBroswerFingerPrint(app_version);
+                    if (parseInt(response['count']) === 0) {
 
-            console.log('save');
+                        displayModal(id);
 
-          }
+                        ajaxSaveBroswerFingerPrint(app_version);
+
+                        console.log('save');
+
+                    } else {
+
+                        ajaxSaveBroswerFingerPrint(app_version);
+
+                        console.log('save');
+
+                    }
+
+                }
+
+            });
 
         }
 
-      });
+    });
 
 }
 
