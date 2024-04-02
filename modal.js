@@ -1,38 +1,32 @@
-const app_version = navigator.appVersion;
-const link = document.URL;
+const browser_version = navigator.appVersion;
 
-console.log( navigator );
+const current_url = document.URL;
 
 jQuery(document).ready(function() {
 
-    showModal(app_version, link);
+    showModal(browser_version, current_url);
     
 });
 
-function displayModal(id) {
+function displayModal(post_id) {
 
-    console.log('displayModal');
-
-    
     jQuery.ajax({
 
-        url: '/wp-json/modal-api/v1/get-meta/' + id,
+        url: '/wp-json/modal-api/v1/modal-content/?post_id=' + post_id,
 
         type: "GET",
 
         success: function(response) {
 
-            console.log(response);
-
             let content = response['content'];
 
-            let associate_url = response['associate_url'];
+            let url = response['url'];
 
             jQuery('body').append('<div class="modal-container"><div class="modal-content">' + content + 
             
             '<div class="accept-decline"><button onclick="window.location.href=\'https://www.blackstone.com\';">Decline</button>' +
 
-            '<button onclick="window.location.href=\''+associate_url+'\';">Accept</button></div>' +
+            '<button onclick="window.location.href=\''+url+'\';">Accept</button></div>' +
 
             '</div>');
 
@@ -42,50 +36,53 @@ function displayModal(id) {
 
 }
 
-function showModal(app_version, link) {
-
-    console.log('/wp-json/modal-api/v1/browser-inf/?app_version=' + app_version);
+function showModal(browser_version, current_url) {
 
     jQuery.ajax({
 
-        url: '/wp-json/author_modal/v2/modal/',
+        url: '/wp-json/wp/v2/modal',
 
         type: "GET",
 
         success: function(response) {
 
-            //create link hashmap link and id
-            let id = response['id'];
+            const post = response.filter((link) => link['link'] == current_url)[0];
 
-            jQuery.ajax({
+            if(post) {
 
-                url: '/wp-json/modal-api/v1/browser-inf/?app_version=' + app_version,
+                const post_id = post['id'];
 
-                type: "GET",
+                const link = post['link'];
 
-                success: function(response) {
+                if( link == current_url ) {
 
-                    console.log(response['count']);
+                    jQuery.ajax({
 
-                    if (parseInt(response['count']) === 0) {
+                        url: '/wp-json/modal-api/v1/was-visited/?browser_version=' + browser_version + '&post_id=' + post_id,
 
-                        displayModal(id);
+                        type: "GET",
 
-                        ajaxSaveBroswerFingerPrint(app_version);
+                        success: function(response) {
 
-                        console.log('save');
+                            if (response['count'] === null || parseInt(response['count']) === 0) {
 
-                    } else {
+                                displayModal(post_id);
 
-                        ajaxSaveBroswerFingerPrint(app_version);
+                                ajaxWasVisited(browser_version, post_id);
 
-                        console.log('save');
+                            } else {
 
-                    }
+                                ajaxWasVisited(browser_version, post_id);
+
+                            }
+
+                        }
+
+                    });
 
                 }
 
-            });
+            }
 
         }
 
@@ -93,8 +90,7 @@ function showModal(app_version, link) {
 
 }
 
-function ajaxSaveBroswerFingerPrint (app_version) {
-    //console.log( app_version );
+function ajaxWasVisited (browser_version, post_id) {
 
     jQuery.ajax ( {
 
@@ -104,9 +100,12 @@ function ajaxSaveBroswerFingerPrint (app_version) {
 
         data: {
 
-            action: 'save_browser_fingerprint',
+            action: 'was_visited',
 
-            app_version: app_version
+            browser_version: browser_version,
+
+            post_id: post_id,
+
         },
 
         success: function ( response ) {
@@ -118,3 +117,4 @@ function ajaxSaveBroswerFingerPrint (app_version) {
     } );
 
 }
+
